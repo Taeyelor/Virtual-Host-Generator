@@ -1,0 +1,82 @@
+#!/bin/bash
+
+echo "Welcome to Virtual Host Generator ..."
+echo "Please choice your web server : "
+echo "  1. Nginx"
+
+read -p "Your choice : " WEBSERVER
+
+echo "Please choice your operation : "
+echo "  1. Add new vritual host"
+
+read -p "Your operation : " OPERATION
+
+if [ $OPERATION == 1 ]; then
+    echo "You selected ADD operation."
+
+    if [ $WEBSERVER == 1 ]; then
+        echo "You selected NGINX web server."
+
+        read -p "Please enter your domain : " DOMAIN
+        read -p "Please enter your document root directory : " DIRECTORY
+        read -p "Please enter your php version : " PHPVERSION
+        read -p "Do you use prety url ? [yes] " PERTYURL
+
+        echo "127.0.0.1     $DOMAIN" >> /etc/hosts
+
+        if [ "$PERTYURL" == "no" ]; then
+            read -d '' VIRTUALHOST_SCHEMA << EndOfMessage 
+            server {
+                listen 80;
+                listen [::]:80;
+
+                server_name $DOMAIN;
+
+                root $DIRECTORY;
+
+                index index.html index.php;
+
+                location / {
+                    try_files \$uri \$uri/ =404;
+                }
+
+                location ~ \.php$ {
+                    include snippets/fastcgi-php.conf;
+                    fastcgi_pass unix:/var/run/php/php$PHPVERSION-fpm.sock;
+                }
+            }
+EndOfMessage
+        else
+            read -d '' VIRTUALHOST_SCHEMA << EndOfMessage 
+            server {
+                listen 80;
+                listen [::]:80;
+
+                server_name $DOMAIN;
+
+                root $DIRECTORY;
+
+                index index.html index.php;
+
+                location / {
+                    try_files \$uri \$uri/ /index.php?\$query_string;
+                }
+
+                location ~ \.php$ {
+                    include snippets/fastcgi-php.conf;
+                    fastcgi_pass unix:/var/run/php/php$PHPVERSION-fpm.sock;
+                }
+            }
+EndOfMessage
+        fi
+        touch /etc/nginx/sites-available/$DOMAIN
+        echo $VIRTUALHOST_SCHEMA >> /etc/nginx/sites-available/$DOMAIN
+
+        ln -s /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
+
+        systemctl reload nginx
+
+        echo "Done."
+    fi
+fi
+
