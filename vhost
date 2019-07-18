@@ -1,6 +1,8 @@
 #!/bin/bash
 
+echo -e "\e[34m"
 echo "Welcome to Virtual Host Generator ..."
+echo -e "\e[33m"
 echo "Please choice your web server : "
 echo "  1. Nginx"
 
@@ -9,15 +11,18 @@ read -p "Your choice : " WEBSERVER
 echo "Please choice your operation : "
 echo "  1. Add new vritual host"
 echo "  2. Remove a the virtual host"
+echo "  3. Show virtual hosts"
 
 read -p "Your operation : " OPERATION
 
 if [ $OPERATION == 1 ]; then
+    echo -e "\e[34m"
     echo "You selected ADD operation."
 
     if [ $WEBSERVER == 1 ]; then
         echo "You selected NGINX web server."
 
+        echo -e "\e[33m"
         read -p "Please enter your domain : " DOMAIN
         read -p "Please enter your document root directory : " DIRECTORY
         read -p "Please enter your php version : " PHPVERSION
@@ -77,14 +82,27 @@ EndOfMessage
 
         systemctl reload nginx
 
+        echo -e "\e[32m"        
         echo "Done."
     fi
 elif [ $OPERATION == 2 ]; then
+    echo -e "\e[34m"
     echo "You selected REMOVE operation."
 
     if [ $WEBSERVER == 1 ]; then
         echo "You selected NGINX web server."
+        echo -e
+        echo "Your domains :"
 
+        echo -e "\e[39m"
+        for vhost in `ls -a /etc/nginx/sites-available/`
+        do
+            if [ $vhost != "default" ] && [ $vhost != "." ] && [ $vhost != ".." ]; then
+                echo "  ${bold}$vhost"
+            fi
+        done
+
+        echo -e "\e[33m"
         read -p "Please enter your domain : " DOMAIN
 
         sed -i "s/127.0.0.1     $DOMAIN//g" /etc/hosts
@@ -94,6 +112,25 @@ elif [ $OPERATION == 2 ]; then
 
         systemctl reload nginx
 
+        echo -e "\e[32m"
+        echo "Done."
+    fi
+elif [ $OPERATION == 3 ]; then
+    echo -e "\e[34m"
+    echo "You selected SHOW operation."
+
+    if [ $WEBSERVER == 1 ]; then
+        echo "You selected NGINX web server."
+
+        echo -e "\e[39m"
+        for vhost in `ls -a /etc/nginx/sites-available/`
+        do
+            if [ $vhost != "default" ] && [ $vhost != "." ] && [ $vhost != ".." ]; then
+                echo "  $vhost"
+            fi
+        done
+
+        echo -e "\e[32m"
         echo "Done."
     fi
 fi
