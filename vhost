@@ -8,6 +8,7 @@ read -p "Your choice : " WEBSERVER
 
 echo "Please choice your operation : "
 echo "  1. Add new vritual host"
+echo "  2. Remove a the virtual host"
 
 read -p "Your operation : " OPERATION
 
@@ -73,6 +74,23 @@ EndOfMessage
         echo $VIRTUALHOST_SCHEMA >> /etc/nginx/sites-available/$DOMAIN
 
         ln -s /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
+
+        systemctl reload nginx
+
+        echo "Done."
+    fi
+elif [ $OPERATION == 2 ]; then
+    echo "You selected REMOVE operation."
+
+    if [ $WEBSERVER == 1 ]; then
+        echo "You selected NGINX web server."
+
+        read -p "Please enter your domain : " DOMAIN
+
+        sed -i "s/127.0.0.1     $DOMAIN//g" /etc/hosts
+
+        rm -rf /etc/nginx/sites-available/$DOMAIN
+        rm -rf /etc/nginx/sites-enabled/$DOMAIN
 
         systemctl reload nginx
 
